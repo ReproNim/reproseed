@@ -9,7 +9,7 @@
 #   ... more!? -- please send a PR
 
 if [ -z "$REPROSEED" ]; then
-    REPROSEED=$(bash -c 'echo $RANDOM')
+    REPROSEED=$(echo $RANDOM)
     _reproseed_src="random"
 else
     _reproseed_src="provided"
