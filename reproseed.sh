@@ -17,13 +17,16 @@ fi
 
 _setfor=""
 
-while read _var _toolkit; do
-    eval export $_var="$REPROSEED"
+while read _toolkit _var_more; do
+    _var=${_var_more%% *}
+    _more=${_var_more#* }
+    eval export $_var="$REPROSEED" $_more
     _setfor="$_setfor $_toolkit"
 done << EOF
-AFNI_RANDOM_SEEDVAL AFNI
-ANTS_RANDOM_SEED ANTs
-MVPA_SEED PyMVPA
+AFNI AFNI_RANDOM_SEEDVAL
+ANTs ANTS_RANDOM_SEED
+PyMVPA MVPA_SEED
+GSL GSL_RNG_SEED GSL_RNG_TYPE="taus"
 EOF
 
 export REPROSEED
