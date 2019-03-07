@@ -1,5 +1,8 @@
 # vim ft=yaml
 before_install:
+  # need NeuroDebian for bats ATM
+  - bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
+  - travis_retry sudo apt-get update -qq
   - sudo apt-get install shellcheck bats
 # TODO? May be matrix it via sh, dash, bash, and even zsh?
 install:
