@@ -1,0 +1,7 @@
+# vim ft=yaml
+before_install:
+  - sudo apt-get install shellcheck
+# TODO? May be matrix it via sh, dash, bash, and even zsh?
+install:
+script:
+  - shellcheck -s sh reproseed.sh
