@@ -4,9 +4,7 @@
 # displayed seed for RNG, so that results have higher chance to be
 # identical if recomputed if the same seed is provided
 #
-# TODOs:
-#   FreeSurfer -- seems no env var, reconall takes -norandomness or 
-#   ... more!? -- please send a PR
+# TODOs: see/file an issue at https://github.com/ReproNim/reproseed/issues
 
 if [ -z "$REPROSEED" ]; then
     REPROSEED=$(bash -c 'echo $RANDOM')
