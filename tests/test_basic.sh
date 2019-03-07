@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 
 # export PATH=$(dirname $0/..):$PATH
-REPROSEED_CMD="../reproseed.sh"
+REPROSEED_CMD="./reproseed.sh"
 
 common_checks() {
 	# Common checks to see if all seeds in the environment are equal
@@ -25,4 +25,16 @@ common_checks() {
 @test "seed and source" {
  	REPROSEED=1 . $REPROSEED_CMD
 	eval common_checks 1
+}
+
+@test "execute" {
+ 	out=$($REPROSEED_CMD export | grep SEED)
+	echo "$out" | grep -q '(random)'
+	echo "$out" | grep -q 'AFNI_RANDOM_SEEDVAL'
+}
+
+@test "seed execute" {
+ 	out=$(REPROSEED=1 $REPROSEED_CMD export | grep SEED)
+	echo "$out" | grep -q 'REPROSEED=1 (provided)'
+	echo "$out" | grep -q "AFNI_RANDOM_SEEDVAL='1'"
 }
