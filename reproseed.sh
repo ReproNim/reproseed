@@ -15,10 +15,10 @@ fi
 
 _setfor=""
 
-while read _toolkit _var_more; do
+while read -r _toolkit _var_more; do
     _var=${_var_more%% *}
     _more=${_var_more#* }
-    eval export $_var="$REPROSEED" $_more
+    eval "export $_var='$REPROSEED' $_more"
     _setfor="$_setfor $_toolkit"
 done << EOF
 AFNI AFNI_RANDOM_SEEDVAL
@@ -31,6 +31,6 @@ export REPROSEED
 echo "I: REPROSEED=$REPROSEED ($_reproseed_src) set for $_setfor"
 
 if [ "$#" -gt 0 ]; then
-    echo "I: reproseed.sh - running $@"
+    echo I: reproseed.sh - running "$@"
     "$@"
 fi
