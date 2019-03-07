@@ -1,7 +1,8 @@
 # vim ft=yaml
 before_install:
-  - sudo apt-get install shellcheck
+  - sudo apt-get install shellcheck bats
 # TODO? May be matrix it via sh, dash, bash, and even zsh?
 install:
 script:
   - shellcheck -s sh reproseed.sh
+  - bats tests/test_*.sh
