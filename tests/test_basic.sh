@@ -18,7 +18,7 @@ common_checks() {
 }
 
 @test "source check output" {
- 	out=`. $REPROSEED_CMD`
+ 	out=`. $REPROSEED_CMD 2>&1`
  	echo $out | grep -q '(random)'
 }
 
@@ -28,13 +28,18 @@ common_checks() {
 }
 
 @test "execute" {
- 	out=$($REPROSEED_CMD export | grep SEED)
+ 	out=$($REPROSEED_CMD export 2>&1 | grep SEED)
 	echo "$out" | grep -q '(random)'
 	echo "$out" | grep -q 'AFNI_RANDOM_SEEDVAL'
 }
 
 @test "seed execute" {
- 	out=$(REPROSEED=1 $REPROSEED_CMD export | grep SEED)
+ 	out=$(REPROSEED=1 $REPROSEED_CMD export 2>&1 | grep SEED)
 	echo "$out" | grep -q 'REPROSEED=1 (provided)'
 	echo "$out" | grep -q "AFNI_RANDOM_SEEDVAL='1'"
+}
+
+@test "no output to stdout" {
+	[ -z "$(. $REPROSEED_CMD 2>/dev/null)" ]
+	[ -z "$($REPROSEED_CMD true 2>/dev/null)" ]
 }

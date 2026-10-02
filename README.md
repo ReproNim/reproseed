@@ -17,7 +17,7 @@ agreement on the name of such a variable.
 That is where `reproseed` comes to help.  You can either specify your
 desired random seed in environment variable `REPROSEED` or it will
 generate a new random one.  In either of those cases, it will then
-display that seed (so you could use it later to reproduce the
+display that seed on stderr (so you could use it later to reproduce the
 results), and export corresponding environment variables with its
 value for other tools it is aware about (e.g., PyMVPA, AFNI, ANTs).
 

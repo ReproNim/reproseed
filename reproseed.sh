@@ -29,9 +29,9 @@ GSL GSL_RNG_SEED GSL_RNG_TYPE="taus"
 EOF
 
 export REPROSEED
-echo "I: REPROSEED=$REPROSEED ($_reproseed_src) set for $_setfor"
+echo "I: REPROSEED=$REPROSEED ($_reproseed_src) set for $_setfor" >&2
 
 if [ "$#" -gt 0 ]; then
-    echo I: reproseed.sh - running "$@"
+    echo I: reproseed.sh - running "$@" >&2
     "$@"
 fi
