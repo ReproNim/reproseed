@@ -1,4 +1,8 @@
 #!/usr/bin/env bats
+# reproseed.sh is sourced via $REPROSEED_CMD, which shellcheck does not
+# follow (-x crashes shellcheck 0.11.0 on `$(. file)`), so it does not know
+# the variables reproseed.sh sets either
+# shellcheck disable=SC1090,SC2153
 
 # export PATH=$(dirname $0/..):$PATH
 REPROSEED_CMD="./reproseed.sh"
@@ -18,8 +22,8 @@ common_checks() {
 }
 
 @test "source check output" {
- 	out=`. $REPROSEED_CMD`
- 	echo $out | grep -q '(random)'
+ 	out=$(. $REPROSEED_CMD)
+ 	echo "$out" | grep -q '(random)'
 }
 
 @test "seed and source" {
