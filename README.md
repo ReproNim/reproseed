@@ -25,7 +25,9 @@ value for other tools it is aware about (e.g., [PyMVPA][pymvpa],
 Even with the same seed, results could differ when the same computation
 is run on different machines, because numerical libraries choose
 CPU-specific (SIMD) code paths at run time.  Therefore `reproseed` also
-restricts them to a common CPU features level.
+configures supported libraries to use a common CPU feature profile. This can
+reduce numerical variation; it does not guarantee identical results across all
+hardware, library builds, or threading configurations.
 
 ## CPU features
 
