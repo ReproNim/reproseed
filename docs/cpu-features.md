@@ -34,6 +34,10 @@ following variables are exported:
 - `OPENBLAS_CORETYPE` affects only OpenBLAS builds with
   [`DYNAMIC_ARCH`][openblas-dynamic-arch], e.g. in NumPy wheels, Debian,
   conda-forge.
+- `MKL_CBWR` branches other than `AUTO` and `COMPATIBLE` are available
+  only on Intel CPUs, others silently use `AUTO`, so MKL results can
+  still differ between Intel and AMD CPUs.  Set `MKL_CBWR=COMPATIBLE`
+  (slower) to avoid that.
 - oneDNN is used by PyTorch and [TensorFlow][tensorflow].
 
 Variables already set by the caller, even to an empty value, are left
