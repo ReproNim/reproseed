@@ -3,9 +3,10 @@
 Numerical libraries choose CPU-specific (SIMD) code paths at run time,
 e.g. AVX512 `exp` in [NumPy][numpy] or matrix multiplication kernels in
 [OpenBLAS][openblas], which can produce results differing in the last
-bits on different CPUs.  `reproseed.sh` therefore restricts them to the
-[x86-64 microarchitecture level][x86-64-levels] given in
-`REPROSEED_CPU`.
+bits on different CPUs. `reproseed.sh` configures supported libraries using
+the [x86-64 microarchitecture profile][x86-64-levels] in `REPROSEED_CPU`.
+This reduces one source of variation; it does not guarantee identical results
+across hardware, library builds, or threading configurations.
 
 On x86-64 it defaults to `x86-64-v3` (AVX2 and FMA, supported by most
 CPUs since Intel Haswell and AMD Excavator/Zen), for which the
@@ -23,7 +24,9 @@ following variables are exported:
 - `NPY_DISABLE_CPU_FEATURES` lists the AVX512 targets of NumPy < 2.4
   (`AVX512F AVX512_SKX AVX512_ICL AVX512_SPR`) and >= 2.4
   (`X86_V4 AVX512_ICL AVX512_SPR`), since disabling one target does not
-  disable the others.  It is not set if `/proc/cpuinfo` shows no
+  disable the others. Existing exclusions are retained and missing profile
+  targets appended, so wrapping a command does not re-enable excluded paths.
+  It is not set if `/proc/cpuinfo` shows no
   AVX512, or if [`NPY_ENABLE_CPU_FEATURES`][npy-enable] is set (NumPy
   refuses both).
 - `OPENBLAS_CORETYPE` and `ATEN_CPU_CAPABILITY` select code for the
@@ -34,10 +37,19 @@ following variables are exported:
 - `OPENBLAS_CORETYPE` affects only OpenBLAS builds with
   [`DYNAMIC_ARCH`][openblas-dynamic-arch], e.g. in NumPy wheels, Debian,
   conda-forge.
-- oneDNN is used by PyTorch and [TensorFlow][tensorflow].
+- oneDNN is used by PyTorch and [TensorFlow][tensorflow]. Its environment cap
+  takes effect only when built with `ONEDNN_ENABLE_MAX_CPU_ISA=ON`; see the
+  [dispatcher build and runtime controls][onednn-isa].
+- An explicit `MKL_CBWR` is preserved, including `AVX2,STRICT` and
+  `COMPATIBLE`. Settings outside the recognized AVX2-or-lower branches produce
+  a warning because they may defeat a common CPU profile. Unknown values are
+  preserved but are not validated by reproseed. Intel documents non-`AUTO`/
+  `COMPATIBLE` branches as Intel-only, and unsupported branches may silently
+  fall back to `AUTO`; exporting `AVX2` does not establish a common Intel/AMD
+  branch. See [MKL branch semantics][mkl-cbwr].
 
-A different value already set for any of those variables is overridden,
-with a warning.  With `REPROSEED_CPU=native` none of them is set (values
+Except for the NumPy exclusions and explicit MKL settings described above,
+a different value already set for these variables is overridden with a warning.  With `REPROSEED_CPU=native` none of them is set (values
 already in the environment are left as is).  It is the default on other
 architectures (e.g., aarch64), for which no restrictions are implemented
 (yet).
@@ -65,7 +77,10 @@ architectures (e.g., aarch64), for which no restrictions are implemented
   [`OPENBLAS_NUM_THREADS`][openblas-vars],
   [`MKL_NUM_THREADS`][mkl-threads],
   [`ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS`][itk-threads] etc. when
-  comparing results.
+  comparing results. For standard MKL CNR, also set `MKL_DYNAMIC=FALSE` and
+  `OMP_DYNAMIC=FALSE`. Strict CNR relaxes the thread-count requirement only
+  for selected operations, including GEMM; see [Intel reproducibility
+  conditions][mkl-cnr].
 
 [ants]: https://github.com/ANTsX/ANTs
 [aten-cpu]: https://github.com/pytorch/pytorch/blob/v2.14.1/aten/src/ATen/native/DispatchStub.cpp#L30
@@ -90,3 +105,5 @@ architectures (e.g., aarch64), for which no restrictions are implemented
 [threadpoolctl]: https://github.com/joblib/threadpoolctl
 [torch-cpu-capability]: https://docs.pytorch.org/docs/2.14/backends.html#torch.backends.cpu.get_cpu_capability
 [x86-64-levels]: https://en.wikipedia.org/wiki/X86-64#Microarchitecture_levels
+
+[mkl-cnr]: https://www.intel.com/content/www/us/en/docs/onemkl/developer-guide-linux/2025-2/reproducibility-conditions.html

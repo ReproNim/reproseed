@@ -72,6 +72,29 @@ while read -r _how _var _value; do
         fi
     fi
     eval "_cur=\${$_var:-}"
+    if [ "$_var" = "NPY_DISABLE_CPU_FEATURES" ] && [ -n "$_cur" ]; then
+        # Keep caller exclusions; append missing profile targets only.
+        _defaults=$_value
+        _value=$_cur
+        _disabled=$(printf '%s' "$_cur" | tr ',\t' '  ')
+        for _feature in $_defaults; do
+            case " $_disabled " in
+                *" $_feature "*) ;;
+                *) _value="$_value $_feature";;
+            esac
+        done
+        export "$_var=$_value"
+        continue
+    fi
+    if [ "$_var" = "MKL_CBWR" ] && [ -n "$_cur" ]; then
+        # Preserve explicit CNR, especially STRICT and COMPATIBLE.
+        case "${_cur#BRANCH=}" in
+            AVX2|AVX2,STRICT|COMPATIBLE|SSE2|SSE3|SSSE3|SSE4_2|AVX) ;;
+            *) echo "W: preserving MKL_CBWR=$_cur; this setting is not verified" \
+                    "against the AVX2 profile and results may differ across CPUs" >&2;;
+        esac
+        continue
+    fi
     if [ -n "$_cur" ] && [ "$_cur" != "$_value" ]; then
         echo "W: overriding $_var=$_cur" >&2
     fi

@@ -169,11 +169,11 @@ refute_cpu_vars() {
 	[ "$(echo "$out" | grep -c '^NPY_DISABLE_CPU_FEATURES=')" -eq 0 ]
 }
 
-@test "preset cpu variable is overridden with a warning" {
+@test "MKL setting outside the profile is preserved with a warning" {
 	fake uname 'echo x86_64'
 	out=$(MKL_CBWR=AVX512 run_faked)
-	echo "$out" | grep -q 'W: overriding MKL_CBWR=AVX512'
-	echo "$out" | grep -qx 'MKL_CBWR=AVX2'
+	echo "$out" | grep -q 'W: preserving MKL_CBWR=AVX512'
+	echo "$out" | grep -qx 'MKL_CBWR=AVX512'
 }
 
 @test "source under set -eu" {
@@ -187,4 +187,34 @@ refute_cpu_vars() {
 	fake_cpuinfo 'avx avx512f'
 	[ -z "$(PATH="$fakebin:$PATH" MKL_CBWR=x NPY_ENABLE_CPU_FEATURES=x $REPROSEED_CMD true 2>/dev/null)" ]
 	[ -z "$(PATH="$fakebin:$PATH" REPROSEED_CPU=bogus $REPROSEED_CMD true 2>/dev/null)" ]
+}
+
+@test "explicit compatible MKL settings are preserved without warning" {
+    fake uname 'echo x86_64'
+    fake_cpuinfo 'avx avx2 fma avx512f'
+    for value in AVX2,STRICT COMPATIBLE BRANCH=AVX2,STRICT; do
+        out=$(MKL_CBWR="$value" run_faked)
+        echo "$out" | grep -qx "MKL_CBWR=$value"
+        ! echo "$out" | grep -q '^W:'
+    done
+}
+
+@test "NumPy exclusions are merged and repeated sourcing is idempotent" {
+    fake uname 'echo x86_64'
+    fake_cpuinfo 'avx avx2 fma avx512f'
+    out=$(PATH="$fakebin:$PATH" NPY_DISABLE_CPU_FEATURES='X86_V3,AVX512F' sh -c '
+        . ./reproseed.sh
+        first=$NPY_DISABLE_CPU_FEATURES
+        . ./reproseed.sh
+        [ "$first" = "$NPY_DISABLE_CPU_FEATURES" ] || exit 1
+        printf "%s\n" "$NPY_DISABLE_CPU_FEATURES"
+    ' 2>/dev/null)
+    [ "$out" = 'X86_V3,AVX512F AVX512_SKX AVX512_ICL AVX512_SPR X86_V4' ]
+}
+
+@test "native preserves explicit CPU settings" {
+    fake uname 'echo x86_64'
+    out=$(REPROSEED_CPU=native MKL_CBWR=AVX2,STRICT NPY_DISABLE_CPU_FEATURES=X86_V3 run_faked)
+    echo "$out" | grep -qx 'MKL_CBWR=AVX2,STRICT'
+    echo "$out" | grep -qx 'NPY_DISABLE_CPU_FEATURES=X86_V3'
 }
