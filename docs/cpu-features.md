@@ -36,9 +36,8 @@ following variables are exported:
   conda-forge.
 - oneDNN is used by PyTorch and [TensorFlow][tensorflow].
 
-A different value already set for any of those variables is overridden,
-with a warning.  With `REPROSEED_CPU=native` none of them is set (values
-already in the environment are left as is).  It is the default on other
+Variables already set by the caller, even to an empty value, are left
+as they are.  With `REPROSEED_CPU=native` none of them is set.  It is the default on other
 architectures (e.g., aarch64), for which no restrictions are implemented
 (yet).
 

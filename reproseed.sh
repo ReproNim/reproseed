@@ -56,6 +56,9 @@ _cpu_notset=""
 # "force" variables select code for the level, which crashes if unsupported
 while read -r _how _var _value; do
     [ -n "$_cpu_level" ] || continue
+    # keep what the caller has set, even if empty
+    eval "_set=\${$_var+1}"
+    [ -z "$_set" ] || continue
     if [ "$_how" = "force" ] && [ -z "$_cpu_confirmed" ]; then
         _cpu_notset="$_cpu_notset $_var"
         continue
@@ -66,14 +69,7 @@ while read -r _how _var _value; do
             continue
         fi
         # NumPy refuses to import if both are set
-        if [ -n "${NPY_ENABLE_CPU_FEATURES:-}" ]; then
-            echo "W: NPY_ENABLE_CPU_FEATURES is set, not setting $_var" >&2
-            continue
-        fi
-    fi
-    eval "_cur=\${$_var:-}"
-    if [ -n "$_cur" ] && [ "$_cur" != "$_value" ]; then
-        echo "W: overriding $_var=$_cur" >&2
+        [ -z "${NPY_ENABLE_CPU_FEATURES:-}" ] || continue
     fi
     export "$_var=$_value"
 done << EOF

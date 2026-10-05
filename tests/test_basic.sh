@@ -164,16 +164,18 @@ refute_cpu_vars() {
 	fake uname 'echo x86_64'
 	fake_cpuinfo 'avx avx2 fma avx512f'
 	out=$(NPY_ENABLE_CPU_FEATURES=X86_V3 run_faked)
-	echo "$out" | grep -q 'W: NPY_ENABLE_CPU_FEATURES is set, not setting NPY_DISABLE_CPU_FEATURES'
 	echo "$out" | grep -qx 'MKL_CBWR=AVX2'
 	[ "$(echo "$out" | grep -c '^NPY_DISABLE_CPU_FEATURES=')" -eq 0 ]
 }
 
-@test "preset cpu variable is overridden with a warning" {
+@test "cpu variables set by the caller are kept, even if empty" {
 	fake uname 'echo x86_64'
-	out=$(MKL_CBWR=AVX512 run_faked)
-	echo "$out" | grep -q 'W: overriding MKL_CBWR=AVX512'
-	echo "$out" | grep -qx 'MKL_CBWR=AVX2'
+	fake_cpuinfo 'avx'
+	out=$(MKL_CBWR=COMPATIBLE OPENBLAS_CORETYPE='' run_faked)
+	echo "$out" | grep -qx 'MKL_CBWR=COMPATIBLE'
+	echo "$out" | grep -qx 'OPENBLAS_CORETYPE='
+	echo "$out" | grep -q 'not setting ATEN_CPU_CAPABILITY;'
+	[ "$(echo "$out" | grep -c '^W:.*OPENBLAS_CORETYPE')" -eq 0 ]
 }
 
 @test "source under set -eu" {
@@ -185,6 +187,6 @@ refute_cpu_vars() {
 @test "cpu warnings go to stderr only" {
 	fake uname 'echo x86_64'
 	fake_cpuinfo 'avx avx512f'
-	[ -z "$(PATH="$fakebin:$PATH" MKL_CBWR=x NPY_ENABLE_CPU_FEATURES=x $REPROSEED_CMD true 2>/dev/null)" ]
+	[ -z "$(PATH="$fakebin:$PATH" $REPROSEED_CMD true 2>/dev/null)" ]
 	[ -z "$(PATH="$fakebin:$PATH" REPROSEED_CPU=bogus $REPROSEED_CMD true 2>/dev/null)" ]
 }
